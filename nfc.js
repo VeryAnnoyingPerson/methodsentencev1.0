@@ -1,44 +1,28 @@
-if (window.ApplePaySession) {
-    const paymentRequest = {
-        countryCode: 'US',
-        currencyCode: 'USD',
-        supportedNetworks: ['visa', 'masterCard'],
-        merchantCapabilities: ['supports3DS'],
-        total: {
-            label: 'Your Merchant Name',
-            amount: '10.00'
+// nfc.js
+const output = document.getElementById('output');
+const readButton = document.getElementById('readNfc');
+
+// Check if Web NFC is supported
+if ('NDEFReader' in window) {
+    console.log('Web NFC is supported');
+
+    readButton.addEventListener('click', async () => {
+        try {
+            const nfcReader = new NDEFReader();
+            await nfcReader.scan();
+            output.textContent = "Scanning for NFC tag...";
+
+            nfcReader.onreading = (event) => {
+                const serialNumber = event.serialNumber;
+                output.textContent = `NFC Tag Serial Number: ${serialNumber}`;
+                // You can send this data to your server or trigger Apple Pay here
+            };
+        } catch (error) {
+            output.textContent = `Error: ${error}`;
         }
-    };
-
-    const session = new ApplePaySession(3, paymentRequest);
-
-    session.onvalidatemerchant = (event) => {
-        // Call your server to get the merchant session.
-        fetch('/validate-merchant', {
-            method: 'POST',
-            body: JSON.stringify({ validationURL: event.validationURL }),
-        })
-        .then(response => response.json())
-        .then(merchantSession => {
-            session.completeMerchantValidation(merchantSession);
-        });
-    };
-
-    session.onpaymentauthorized = (event) => {
-        // Handle the payment and send details to the server
-        fetch('/process-payment', {
-            method: 'POST',
-            body: JSON.stringify(event.payment),
-        })
-        .then(response => response.json())
-        .then(result => {
-            if (result.success) {
-                session.completePayment(ApplePaySession.STATUS_SUCCESS);
-            } else {
-                session.completePayment(ApplePaySession.STATUS_FAILURE);
-            }
-        });
-    };
-
-    session.begin();
+    });
+} else {
+    console.log('Web NFC is not supported in this browser.');
+    output.textContent = "Web NFC is not supported in this browser.";
 }
+
