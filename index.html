@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NFC Reader Example</title>
+    <title>NFC Reader and Payment</title>
 </head>
 <body>
     <h1>NFC Reader Example</h1>
@@ -27,7 +27,24 @@
                     nfcReader.onreading = (event) => {
                         const serialNumber = event.serialNumber;
                         output.textContent = `NFC Tag Serial Number: ${serialNumber}`;
-                        // You can send this data to your server or trigger Apple Pay here
+                        
+                        // Send serial number to backend to initiate payment
+                        fetch('/start-payment', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ serialNumber: serialNumber })
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                // Use the response to trigger Apple Pay or Google Pay
+                                initiatePayment(data.paymentDetails);
+                            } else {
+                                output.textContent = "Failed to initiate payment.";
+                            }
+                        });
                     };
                 } catch (error) {
                     output.textContent = `Error: ${error}`;
@@ -37,7 +54,53 @@
             console.log('Web NFC is not supported in this browser.');
             output.textContent = "Web NFC is not supported in this browser.";
         }
+
+        // Function to initiate payment
+        function initiatePayment(paymentDetails) {
+            if (window.ApplePaySession) {
+                // Use Apple Pay
+                const session = new ApplePaySession(3, paymentDetails);
+
+                session.onvalidatemerchant = (event) => {
+                    fetch('/validate-merchant', {
+                        method: 'POST',
+                        body: JSON.stringify({ validationURL: event.validationURL })
+                    })
+                    .then(response => response.json())
+                    .then(merchantSession => {
+                        session.completeMerchantValidation(merchantSession);
+                    });
+                };
+
+                session.onpaymentauthorized = (event) => {
+                    fetch('/process-payment', {
+                        method: 'POST',
+                        body: JSON.stringify(event.payment)
+                    })
+                    .then(response => response.json())
+                    .then(result => {
+                        if (result.success) {
+                            session.completePayment(ApplePaySession.STATUS_SUCCESS);
+                        } else {
+                            session.completePayment(ApplePaySession.STATUS_FAILURE);
+                        }
+                    });
+                };
+
+                session.begin();
+            } else if (window.PaymentRequest) {
+                // Use Google Pay or other Payment Request API
+                const request = new PaymentRequest(paymentDetails.methodData, paymentDetails.details, paymentDetails.options);
+                
+                request.show().then(paymentResponse => {
+                    return paymentResponse.complete('success');
+                }).catch(err => {
+                    console.error("Payment failed: ", err);
+                });
+            } else {
+                output.textContent = "Neither Apple Pay nor Payment Request API is supported.";
+            }
+        }
     </script>
 </body>
 </html>
-
