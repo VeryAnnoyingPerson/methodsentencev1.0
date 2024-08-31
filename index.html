@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>NFC Reader</title>
+</head>
+<body>
+    <h1>NFC Reader Example</h1>
+    <button id="readNfc">Read NFC Tag</button>
+    <p id="output"></p>
+
+    <script>
+        const output = document.getElementById('output');
+        const readButton = document.getElementById('readNfc');
+
+        readButton.addEventListener('click', async () => {
+            try {
+                const nfcReader = new NDEFReader();
+                await nfcReader.scan();
+                output.textContent = "Scanning for NFC tag...";
+
+                nfcReader.onreading = (event) => {
+                    const serialNumber = event.serialNumber;
+                    output.textContent = `NFC Tag Serial Number: ${serialNumber}`;
+                    // You can send this data to your server or trigger Apple Pay here
+                };
+            } catch (error) {
+                output.textContent = `Error: ${error}`;
+            }
+        });
+    </script>
+</body>
+</html>
