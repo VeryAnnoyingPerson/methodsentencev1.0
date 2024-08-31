@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Generate QR Code for Travel Card</title>
+    <title>Add Travel Card to Wallet</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             margin: 40px;
             text-align: center;
         }
-        #generateButton {
+        #readNfc, #generateButton {
             margin-top: 20px;
             padding: 10px 20px;
             background-color: #0070ba;
@@ -19,17 +19,24 @@
             border-radius: 5px;
             cursor: pointer;
         }
+        #generateButton[disabled] {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
         #qrCode {
             margin-top: 20px;
         }
     </style>
 </head>
 <body>
-    <h1>Generate QR Code for Travel Card</h1>
-    
+    <h1>Add Travel Card to Wallet</h1>
+
     <!-- Input field for manual entry of NFC serial number -->
     <input type="text" id="serialNumberInput" placeholder="Enter Travel Card Serial Number" />
-    
+
+    <!-- Button to trigger NFC scanning if supported -->
+    <button id="readNfc">Scan Travel Card</button>
+
     <!-- Button to generate QR Code -->
     <button id="generateButton" disabled>Generate QR Code</button>
 
@@ -38,19 +45,46 @@
 
     <p id="output"></p>
 
-    <!-- QR Code library (https://github.com/davidshimjs/qrcodejs) -->
+    <!-- QR Code library -->
     <script src="https://cdn.rawgit.com/davidshimjs/qrcodejs/gh-pages/qrcode.min.js"></script>
 
     <script>
         const serialNumberInput = document.getElementById('serialNumberInput');
+        const readButton = document.getElementById('readNfc');
         const generateButton = document.getElementById('generateButton');
         const qrCodeDiv = document.getElementById('qrCode');
         const output = document.getElementById('output');
+
+        // Check if Web NFC is supported
+        if ('NDEFReader' in window) {
+            readButton.style.display = 'inline-block'; // Show the NFC read button
+
+            readButton.addEventListener('click', async () => {
+                try {
+                    const nfcReader = new NDEFReader();
+                    await nfcReader.scan();
+                    output.textContent = "Scanning for NFC tag...";
+
+                    nfcReader.onreading = (event) => {
+                        const serialNumber = event.serialNumber;
+                        serialNumberInput.value = serialNumber;
+                        output.textContent = `Travel Card Serial Number: ${serialNumber}`;
+                        generateButton.disabled = false; // Enable the Generate QR Code button
+                        generateButton.style.display = 'inline-block'; // Show the generate button
+                    };
+                } catch (error) {
+                    output.textContent = `Error: ${error}`;
+                }
+            });
+        } else {
+            readButton.style.display = 'none'; // Hide the NFC read button if not supported
+        }
 
         // Enable the generate button if a serial number is entered
         serialNumberInput.addEventListener('input', () => {
             if (serialNumberInput.value.trim() !== "") {
                 generateButton.disabled = false;
+                generateButton.style.display = 'inline-block';
             } else {
                 generateButton.disabled = true;
             }
@@ -68,7 +102,7 @@
         function generateQRCode(serialNumber) {
             output.textContent = `Generating QR Code for Serial Number: ${serialNumber}...`;
 
-            // Replace this with a URL to your public .pkpass file or equivalent
+            // Replace this URL with your public URL that points to the .pkpass file or equivalent
             const addCardUrl = `https://yourfileservice.com/path/to/yourfile.pkpass`;
 
             // Clear any previous QR Code
