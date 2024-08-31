@@ -3,20 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NFC Reader and Payment</title>
+    <title>NFC Serial Number Payment</title>
+    <style>
+        #payButton {
+            display: none; /* Hide the pay button initially */
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #0070ba;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        #payButton[disabled] {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+    </style>
 </head>
 <body>
-    <h1>NFC Reader Example</h1>
-    <button id="readNfc">Read NFC Tag</button>
+    <h1>Enter or Scan NFC Tag Serial Number</h1>
+    
+    <!-- Input field for manual entry of NFC serial number -->
+    <input type="text" id="serialNumberInput" placeholder="Enter NFC Tag Serial Number" />
+
+    <!-- Button to trigger NFC scanning if supported -->
+    <button id="readNfc">Scan NFC Tag</button>
+    
+    <!-- Button to initiate payment -->
+    <button id="payButton" disabled>Pay Now</button>
+
     <p id="output"></p>
 
     <script>
-        const output = document.getElementById('output');
+        const serialNumberInput = document.getElementById('serialNumberInput');
         const readButton = document.getElementById('readNfc');
+        const payButton = document.getElementById('payButton');
+        const output = document.getElementById('output');
 
         // Check if Web NFC is supported
         if ('NDEFReader' in window) {
-            console.log('Web NFC is supported');
+            readButton.style.display = 'inline-block'; // Show the NFC read button
 
             readButton.addEventListener('click', async () => {
                 try {
@@ -26,37 +54,52 @@
 
                     nfcReader.onreading = (event) => {
                         const serialNumber = event.serialNumber;
+                        serialNumberInput.value = serialNumber;
                         output.textContent = `NFC Tag Serial Number: ${serialNumber}`;
-                        
-                        // Send serial number to backend to initiate payment
-                        fetch('/start-payment', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify({ serialNumber: serialNumber })
-                        })
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.success) {
-                                // Use the response to trigger Apple Pay or Google Pay
-                                initiatePayment(data.paymentDetails);
-                            } else {
-                                output.textContent = "Failed to initiate payment.";
-                            }
-                        });
+                        payButton.disabled = false; // Enable the Pay button
+                        payButton.style.display = 'inline-block';
                     };
                 } catch (error) {
                     output.textContent = `Error: ${error}`;
                 }
             });
         } else {
-            console.log('Web NFC is not supported in this browser.');
-            output.textContent = "Web NFC is not supported in this browser.";
+            readButton.style.display = 'none'; // Hide the NFC read button if not supported
         }
 
-        // Function to initiate payment
-        function initiatePayment(paymentDetails) {
+        // Enable the pay button if a serial number is entered
+        serialNumberInput.addEventListener('input', () => {
+            if (serialNumberInput.value.trim() !== "") {
+                payButton.disabled = false;
+                payButton.style.display = 'inline-block';
+            } else {
+                payButton.disabled = true;
+            }
+        });
+
+        // Handle payment initiation
+        payButton.addEventListener('click', () => {
+            const serialNumber = serialNumberInput.value.trim();
+            if (serialNumber !== "") {
+                initiatePayment(serialNumber);
+            }
+        });
+
+        // Function to initiate Apple Pay or Google Pay
+        function initiatePayment(serialNumber) {
+            output.textContent = `Initiating payment for serial number: ${serialNumber}`;
+
+            const paymentDetails = {
+                countryCode: 'US',
+                currencyCode: 'USD',
+                supportedNetworks: ['visa', 'masterCard'],
+                merchantCapabilities: ['supports3DS'],
+                total: {
+                    label: 'Your Merchant Name',
+                    amount: '10.00'
+                }
+            };
+
             if (window.ApplePaySession) {
                 // Use Apple Pay
                 const session = new ApplePaySession(3, paymentDetails);
@@ -64,7 +107,7 @@
                 session.onvalidatemerchant = (event) => {
                     fetch('/validate-merchant', {
                         method: 'POST',
-                        body: JSON.stringify({ validationURL: event.validationURL })
+                        body: JSON.stringify({ validationURL: event.validationURL }),
                     })
                     .then(response => response.json())
                     .then(merchantSession => {
@@ -75,14 +118,16 @@
                 session.onpaymentauthorized = (event) => {
                     fetch('/process-payment', {
                         method: 'POST',
-                        body: JSON.stringify(event.payment)
+                        body: JSON.stringify(event.payment),
                     })
                     .then(response => response.json())
                     .then(result => {
                         if (result.success) {
                             session.completePayment(ApplePaySession.STATUS_SUCCESS);
+                            output.textContent = "Payment successful!";
                         } else {
                             session.completePayment(ApplePaySession.STATUS_FAILURE);
+                            output.textContent = "Payment failed!";
                         }
                     });
                 };
@@ -90,12 +135,49 @@
                 session.begin();
             } else if (window.PaymentRequest) {
                 // Use Google Pay or other Payment Request API
-                const request = new PaymentRequest(paymentDetails.methodData, paymentDetails.details, paymentDetails.options);
-                
+                const request = new PaymentRequest([{
+                    supportedMethods: 'https://google.com/pay',
+                    data: {
+                        environment: 'TEST', // or 'PRODUCTION'
+                        apiVersion: 2,
+                        apiVersionMinor: 0,
+                        allowedPaymentMethods: [{
+                            type: 'CARD',
+                            parameters: {
+                                allowedAuthMethods: ['PAN_ONLY', 'CRYPTOGRAM_3DS'],
+                                allowedCardNetworks: ['MASTERCARD', 'VISA'],
+                            },
+                            tokenizationSpecification: {
+                                type: 'PAYMENT_GATEWAY',
+                                parameters: {
+                                    gateway: 'example',
+                                    gatewayMerchantId: 'gatewayMerchantId'
+                                }
+                            }
+                        }],
+                        merchantInfo: {
+                            merchantName: 'Example Merchant',
+                            merchantId: '01234567890123456789'
+                        },
+                        transactionInfo: {
+                            totalPriceStatus: 'FINAL',
+                            totalPrice: '10.00',
+                            currencyCode: 'USD',
+                            countryCode: 'US'
+                        }
+                    }
+                }], {
+                    total: {
+                        label: 'Total',
+                        amount: { currency: 'USD', value: '10.00' }
+                    }
+                });
+
                 request.show().then(paymentResponse => {
                     return paymentResponse.complete('success');
                 }).catch(err => {
                     console.error("Payment failed: ", err);
+                    output.textContent = "Payment failed!";
                 });
             } else {
                 output.textContent = "Neither Apple Pay nor Payment Request API is supported.";
