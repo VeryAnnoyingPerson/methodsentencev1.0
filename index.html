@@ -33,14 +33,33 @@
         }
     </style>
     <script>
-        async function getNewMessage() {
-            try {
-                const response = await fetch('/generate');
-                const data = await response.json();
-                document.getElementById('message').innerText = data.message;
-            } catch (error) {
-                console.error('Error fetching new message:', error);
+        // JavaScript function to generate a random message
+        function generateMessage() {
+            const foods = ["pizza", "burger", "pasta", "sushi", "sandwich", "salad", "fries", "steak"];
+            const unedibleAdjectives = ["spoiled", "burnt", "cold", "overcooked", "undercooked", "stale"];
+            const feelings = ["disappointed", "angry", "sad", "frustrated", "annoyed"];
+            const times = ["12:15 PM", "12:45 PM", "1:30 PM", "2:00 PM", "3:15 PM", "4:20 PM", "4:50 PM"];
+
+            // Randomly select values
+            const food1 = foods[Math.floor(Math.random() * foods.length)];
+            let food2 = foods[Math.floor(Math.random() * foods.length)];
+            while (food2 === food1) { // Ensure food2 is different
+                food2 = foods[Math.floor(Math.random() * foods.length)];
             }
+            const unedibleAdjective = unedibleAdjectives[Math.floor(Math.random() * unedibleAdjectives.length)];
+            const feeling = feelings[Math.floor(Math.random() * feelings.length)];
+            const time = times[Math.floor(Math.random() * times.length)];
+
+            // Construct the message
+            const message = `
+                I brought ${food1} and ${food2} and a drink, and when they came they were ${unedibleAdjective}.
+                I felt ${feeling}. I had to throw them away.<br><br>
+                This all happened yesterday at ${time}.<br><br>
+                I paid by cash and the printer for the receipt wasn't working.
+            `;
+
+            // Display the message
+            document.getElementById("message").innerHTML = message;
         }
     </script>
 </head>
@@ -48,7 +67,7 @@
     <div class="container">
         <h1>Random Message Generator</h1>
         <p id="message">Click the button below to generate a random message!</p>
-        <button onclick="getNewMessage()">Generate Message</button>
+        <button onclick="generateMessage()">Generate Message</button>
     </div>
 </body>
 </html>
