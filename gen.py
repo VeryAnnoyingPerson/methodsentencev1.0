@@ -1,4 +1,4 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, jsonify
 import random
 
 app = Flask(__name__)
@@ -30,8 +30,12 @@ def generate_message():
 # Route for the homepage
 @app.route("/")
 def home():
-    message = generate_message()
-    return render_template("index.html", message=message)
+    return render_template("index.html")
+
+# API route to generate a new message
+@app.route("/generate", methods=["GET"])
+def generate():
+    return jsonify({"message": generate_message()})
 
 if __name__ == "__main__":
     app.run(debug=True)
