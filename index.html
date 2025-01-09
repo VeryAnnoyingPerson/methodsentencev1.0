@@ -81,8 +81,10 @@
             const formattedHour = hour > 12 ? hour - 12 : hour;
             const time = `${formattedHour}:${minute} ${period}`;
 
-            // Decide food items based on the time
-            const foodList = hour < 12 ? [...breakfastFoods, ...otherFoods] : otherFoods;
+            // Exclude breakfast items if the time is after 11 AM
+            const foodList = hour < 11 ? [...breakfastFoods, ...otherFoods] : otherFoods;
+
+            // Randomly select food items
             const food1 = foodList[Math.floor(Math.random() * foodList.length)];
             let food2 = foodList[Math.floor(Math.random() * foodList.length)];
             while (food2 === food1) { // Ensure food2 is different
