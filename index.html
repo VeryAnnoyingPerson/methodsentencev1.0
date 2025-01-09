@@ -81,8 +81,8 @@
             const formattedHour = hour > 12 ? hour - 12 : hour;
             const time = `${formattedHour}:${minute} ${period}`;
 
-            // Exclude breakfast items if the time is after 11 AM
-            const foodList = hour < 11 ? [...breakfastFoods, ...otherFoods] : otherFoods;
+            // Include breakfast items only if it's AM
+            const foodList = period === "AM" ? [...breakfastFoods, ...otherFoods] : otherFoods;
 
             // Randomly select food items
             const food1 = foodList[Math.floor(Math.random() * foodList.length)];
