@@ -1,11 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3121019470069306"
-     crossorigin="anonymous"></script>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3121019470069306" 
+    crossorigin="anonymous"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Random Message Generator</title>
+    <p style="color: red; text-align: center; font-size: 14px;">Note: May not work. Still in development</p>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -33,70 +34,52 @@
         button:hover {
             background-color: #0056b3;
         }
+        #visitor-count {
+            margin-top: 20px;
+            font-weight: bold;
+            color: #007bff;
+        }
     </style>
     <script>
         // JavaScript function to generate a random message
         function generateMessage() {
             const breakfastFoods = [
-                "Bacon Breakfast Roll",
-                "Sausage Breakfast Roll",
-                "Omelette Breakfast Roll",
-                "Vegan Sausage Breakfast Roll",
-                "Bacon and Omelette Breakfast Roll",
-                "Bacon and Sausage Breakfast Roll",
-                "Sausage and Omelette Breakfast Roll",
-                "Bacon Breakfast Baguette",
-                "Sausage Breakfast Baguette",
-                "Omelette Breakfast Baguette",
-                "Bacon and Omelette Breakfast Baguette",
-                "Bacon and Sausage Breakfast Baguette",
-                "Sausage and Omelette Breakfast Baguette",
-                "Bacon and Cheese Wrap",
-                "Simply Creamy Porridge (Ready to eat)",
-                "Golden Syrup Flavour Porridge (Ready to eat)",
+                "Bacon Breakfast Roll", "Sausage Breakfast Roll", "Omelette Breakfast Roll",
+                "Vegan Sausage Breakfast Roll", "Bacon and Omelette Breakfast Roll",
+                "Bacon and Sausage Breakfast Roll", "Sausage and Omelette Breakfast Roll",
+                "Bacon Breakfast Baguette", "Sausage Breakfast Baguette", "Omelette Breakfast Baguette",
+                "Bacon and Omelette Breakfast Baguette", "Bacon and Sausage Breakfast Baguette",
+                "Sausage and Omelette Breakfast Baguette", "Bacon and Cheese Wrap",
+                "Simply Creamy Porridge (Ready to eat)", "Golden Syrup Flavour Porridge (Ready to eat)",
                 "Apple & Cinnamon Flavour Porridge (Ready to eat)"
             ];
 
             const otherFoods = [
-                "Hash Brown (2 pack)",
-                "All Butter Croissant",
-                "Pain au Chocolat",
-                "Sausage Roll",
-                "Vegan Sausage Roll",
-                "Cheese & Onion Bake",
-                "Steak Bake",
-                "Chicken Bake",
-                "Sausage, Bean & Cheese Melt",
-                "Festive Bake",
-                "Spicy Vegetable Curry Bake",
-                "Margherita Pizza",
-                "Pepperoni Pizza"
+                "Hash Brown (2 pack)", "All Butter Croissant", "Pain au Chocolat", 
+                "Sausage Roll", "Vegan Sausage Roll", "Cheese & Onion Bake", "Steak Bake", 
+                "Chicken Bake", "Sausage, Bean & Cheese Melt", "Festive Bake", 
+                "Spicy Vegetable Curry Bake", "Margherita Pizza", "Pepperoni Pizza"
             ];
 
             const unedibleAdjectives = ["soggy", "burnt", "very cold", "undercooked", "stale"];
             const feelings = ["disappointed", "angry", "sad", "frustrated", "annoyed"];
 
-            // Generate a random time between 10:00 AM and 7:59 PM
-            const hour = Math.floor(Math.random() * (20 - 10)) + 10; // 10 to 19 (10 AM to 7 PM)
+            const hour = Math.floor(Math.random() * (20 - 10)) + 10;
             const minute = Math.floor(Math.random() * 60).toString().padStart(2, '0');
             const period = hour >= 12 ? "PM" : "AM";
             const formattedHour = hour > 12 ? hour - 12 : hour;
             const time = `${formattedHour}:${minute} ${period}`;
-
-            // Include breakfast items only if it's AM
             const foodList = period === "AM" ? [...breakfastFoods, ...otherFoods] : otherFoods;
 
-            // Randomly select food items
             const food1 = foodList[Math.floor(Math.random() * foodList.length)];
             let food2 = foodList[Math.floor(Math.random() * foodList.length)];
-            while (food2 === food1) { // Ensure food2 is different
+            while (food2 === food1) {
                 food2 = foodList[Math.floor(Math.random() * foodList.length)];
             }
 
             const unedibleAdjective = unedibleAdjectives[Math.floor(Math.random() * unedibleAdjectives.length)];
             const feeling = feelings[Math.floor(Math.random() * feelings.length)];
 
-            // Construct the message
             const message = `
                 I brought ${food1} and ${food2} and a drink, and when they came they were ${unedibleAdjective}.
                 I felt ${feeling}. I had to throw them away.<br><br>
@@ -104,9 +87,26 @@
                 I paid by cash and the printer for the receipt wasn't working.
             `;
 
-            // Display the message
             document.getElementById("message").innerHTML = message;
         }
+
+        // Visitor count logic
+        function updateVisitorCount() {
+            if (!localStorage.getItem("visited")) {
+                localStorage.setItem("visited", "true");
+                incrementGlobalVisitorCount();
+            }
+
+            const globalCount = localStorage.getItem("globalCount") || 0;
+            document.getElementById("visitor-count").textContent = `Total Visitors: ${globalCount}`;
+        }
+
+        function incrementGlobalVisitorCount() {
+            const globalCount = parseInt(localStorage.getItem("globalCount") || 0) + 1;
+            localStorage.setItem("globalCount", globalCount);
+        }
+
+        document.addEventListener("DOMContentLoaded", updateVisitorCount);
     </script>
 </head>
 <body>
@@ -114,6 +114,7 @@
         <h1>Random Message Generator (v1.1)</h1>
         <p id="message">Click the button below to generate a random message!</p>
         <button onclick="generateMessage()">Generate Message</button>
+        <div id="visitor-count"></div>
     </div>
 </body>
 </html>
