@@ -6,7 +6,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Random Message Generator</title>
-    <p style="color: red; text-align: center; font-size: 14px;">Note: Still in development. May not work, due to high amount of people using this. THIS IS CURRENTLY BEING REWORKED WAIT UNTIL 1.2 TO USE.</p>
+    <p style="color: red; text-align: center; font-size: 14px;">In Development</p>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -41,8 +41,15 @@
         }
     </style>
     <script>
-        // JavaScript function to generate a random message
         function generateMessage() {
+            const starters = [
+                "I brought",
+                "Me and my friends brought",
+                "Me and my kids brought",
+                "My family and I brought",
+                "A group of us decided to order"
+            ];
+
             const breakfastFoods = [
                 "Bacon Breakfast Roll", "Sausage Breakfast Roll", "Omelette Breakfast Roll",
                 "Vegan Sausage Breakfast Roll", "Bacon and Omelette Breakfast Roll",
@@ -64,27 +71,58 @@
             const unedibleAdjectives = ["soggy", "burnt", "very cold", "undercooked", "stale"];
             const feelings = ["disappointed", "angry", "sad", "frustrated", "annoyed"];
 
-            const hour = Math.floor(Math.random() * (20 - 10)) + 10;
+            const complainingWords = ["complained", "raised our concerns", "expressed our dissatisfaction"];
+            const rudeResponses = ["ignored us", "dismissed our issue rudely", "were rude to us", "rolled their eyes", "argued with us"];
+
+            const paymentIssues = [
+                "I paid in cash.",
+                "The printer for the receipt wasn’t working."
+            ];
+
+            // Select random elements
+            const starter = starters[Math.floor(Math.random() * starters.length)];
+            const isGroup = starter.includes("friends") || starter.includes("kids") || starter.includes("family") || starter.includes("group");
+
+            const foodCount = Math.floor(Math.random() * 3) + 3; // Random number between 3 and 5
+            const allFoods = [...breakfastFoods, ...otherFoods];
+            const unedibleAdjective = unedibleAdjectives[Math.floor(Math.random() * unedibleAdjectives.length)];
+            const complainingWord = complainingWords[Math.floor(Math.random() * complainingWords.length)];
+            const rudeResponse = rudeResponses[Math.floor(Math.random() * rudeResponses.length)];
+            const paymentIssue = paymentIssues[Math.floor(Math.random() * paymentIssues.length)];
+            const feeling = feelings[Math.floor(Math.random() * feelings.length)];
+
+            // Select unique foods
+            const selectedFoods = [];
+            while (selectedFoods.length < foodCount) {
+                const food = allFoods[Math.floor(Math.random() * allFoods.length)];
+                if (!selectedFoods.includes(food)) {
+                    selectedFoods.push(food);
+                }
+            }
+
+            // Join foods dynamically in the message
+            const foodString = selectedFoods.slice(0, -1).join(", ") + 
+                " and " + selectedFoods[selectedFoods.length - 1];
+
+            // Generate a random time
+            const hour = Math.floor(Math.random() * (20 - 10)) + 10; // 10 to 19 (10 AM to 7 PM)
             const minute = Math.floor(Math.random() * 60).toString().padStart(2, '0');
             const period = hour >= 12 ? "PM" : "AM";
             const formattedHour = hour > 12 ? hour - 12 : hour;
             const time = `${formattedHour}:${minute} ${period}`;
-            const foodList = period === "AM" ? [...breakfastFoods, ...otherFoods] : otherFoods;
 
-            const food1 = foodList[Math.floor(Math.random() * foodList.length)];
-            let food2 = foodList[Math.floor(Math.random() * foodList.length)];
-            while (food2 === food1) {
-                food2 = foodList[Math.floor(Math.random() * foodList.length)];
-            }
-
-            const unedibleAdjective = unedibleAdjectives[Math.floor(Math.random() * unedibleAdjectives.length)];
-            const feeling = feelings[Math.floor(Math.random() * feelings.length)];
+            // Pronoun adjustments based on starter
+            const pronounSubject = isGroup ? "we" : "I";
+            const pronounObject = isGroup ? "our" : "my";
+            const pronounNotice = isGroup ? "we" : "I"; // For "noticed"
+            const pronounFelt = isGroup ? "we" : "I"; // For "felt"
 
             const message = `
-                I brought ${food1} and ${food2} and a drink, and when they came they were ${unedibleAdjective}.
-                I felt ${feeling}. I had to throw them away.<br><br>
+                ${starter} ${foodString} and a drink, and when they came and ${pronounSubject} left the store, ${pronounObject} noticed they were ${unedibleAdjective}.
+                ${pronounFelt.charAt(0).toUpperCase() + pronounFelt.slice(1)} felt ${feeling}. ${pronounSubject.charAt(0).toUpperCase() + pronounSubject.slice(1)} had to throw them away.<br><br>
+                When ${pronounSubject} ${complainingWord} to staff about it, they ${rudeResponse}.<br><br>
                 This all happened yesterday at ${time}.<br><br>
-                I paid by cash and the printer for the receipt wasn't working.
+                ${paymentIssue}
             `;
 
             document.getElementById("message").innerHTML = message;
