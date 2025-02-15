@@ -82,7 +82,7 @@
             // Generate a random time
             const hour = Math.floor(Math.random() * (20 - 10)) + 10; // 10 to 19 (10 AM to 7 PM)
             const minute = Math.floor(Math.random() * 60).toString().padStart(2, '0');
-            const period = hour >= 12 ? "PM" : "AM";
+            const period = hour >= 12 ? "PM" : "PM";
             const formattedHour = hour > 12 ? hour - 12 : hour;
             const time = `${formattedHour}:${minute} ${period}`;
 
@@ -122,7 +122,6 @@
             const message = `
                 ${starter} ${foodString} and a drink, and when they came and ${pronounSubject} left the store, ${pronounObject} noticed they were ${unedibleAdjective}.
                 ${pronounFelt.charAt(0).toUpperCase() + pronounFelt.slice(1)} felt ${feeling}. ${pronounSubject.charAt(0).toUpperCase() + pronounSubject.slice(1)} had to throw them away.<br><br>
-                When ${pronounSubject} ${complainingWord} to staff about it, they ${rudeResponse}.<br><br>
                 This all happened yesterday at ${time}.<br><br>
                 ${paymentIssue}
             `;
