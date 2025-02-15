@@ -41,6 +41,49 @@
         }
     </style>
     <script>
+        const BIN_ID = "67b07e9dad19ca34f804a11d";  // Replace with your JSONBin bin ID
+        const API_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
+        const API_KEY = "$2a$10$vsXW42oMggx04SqIzHPKJeKXz5jCCxLtHOTz7MHANFFAK7aCJW6Aa";  // Your JSONBin X-Master-Key
+
+        // Fetch and display the current counter
+        function updateGenerationCount() {
+            fetch(API_URL, {
+                headers: { "X-Master-Key": API_KEY }
+            })
+            .then(response => response.json())
+            .then(data => {
+                const currentCount = data.record.count || 0;
+                document.getElementById("generation-count").textContent = `Total Generations: ${currentCount}`;
+            })
+            .catch(error => console.error("Error fetching count:", error));
+        }
+
+        // Increment the counter
+        function incrementGenerationCount() {
+            fetch(API_URL, {
+                headers: { "X-Master-Key": API_KEY }
+            })
+            .then(response => response.json())
+            .then(data => {
+                const currentCount = data.record.count || 0;
+                const newCount = currentCount + 1;
+
+                return fetch(API_URL, {
+                    method: "PUT",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-Master-Key": API_KEY
+                    },
+                    body: JSON.stringify({ count: newCount })
+                });
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById("generation-count").textContent = `Total Generations: ${data.record.count}`;
+            })
+            .catch(error => console.error("Error updating count:", error));
+        }
+
         function generateMessage() {
             const starters = [
                 "I brought",
@@ -82,25 +125,22 @@
             // Generate a random time
             const hour = Math.floor(Math.random() * (20 - 10)) + 10; // 10 to 19 (10 AM to 7 PM)
             const minute = Math.floor(Math.random() * 60).toString().padStart(2, '0');
-            const period = hour >= 12 ? "PM" : "PM";
+            const period = "PM"; 
             const formattedHour = hour > 12 ? hour - 12 : hour;
             const time = `${formattedHour}:${minute} ${period}`;
 
-            // Determine food list based on AM/PM
-            const foodList = period === "AM" ? [...breakfastFoods, ...otherFoods] : otherFoods;
+            const foodList = [...breakfastFoods, ...otherFoods];
 
-            // Select random elements
             const starter = starters[Math.floor(Math.random() * starters.length)];
             const isGroup = starter.includes("friends") || starter.includes("kids") || starter.includes("family") || starter.includes("group");
 
-            const foodCount = Math.floor(Math.random() * 3) + 3; // Random number between 3 and 5
+            const foodCount = Math.floor(Math.random() * 3) + 3;
             const unedibleAdjective = unedibleAdjectives[Math.floor(Math.random() * unedibleAdjectives.length)];
             const complainingWord = complainingWords[Math.floor(Math.random() * complainingWords.length)];
             const rudeResponse = rudeResponses[Math.floor(Math.random() * rudeResponses.length)];
             const paymentIssue = paymentIssues[Math.floor(Math.random() * paymentIssues.length)];
             const feeling = feelings[Math.floor(Math.random() * feelings.length)];
 
-            // Select unique foods
             const selectedFoods = [];
             while (selectedFoods.length < foodCount) {
                 const food = foodList[Math.floor(Math.random() * foodList.length)];
@@ -109,15 +149,13 @@
                 }
             }
 
-            // Join foods dynamically in the message
             const foodString = selectedFoods.slice(0, -1).join(", ") + 
                 " and " + selectedFoods[selectedFoods.length - 1];
 
-            // Pronoun adjustments based on starter
             const pronounSubject = isGroup ? "we" : "I";
             const pronounObject = isGroup ? "our" : "my";
-            const pronounNotice = isGroup ? "we" : "I"; // For "noticed"
-            const pronounFelt = isGroup ? "we" : "I"; // For "felt"
+            const pronounNotice = isGroup ? "we" : "I"; 
+            const pronounFelt = isGroup ? "we" : "I"; 
 
             const message = `
                 ${starter} ${foodString} and a drink, and when they came and ${pronounSubject} left the store, ${pronounObject} noticed they were ${unedibleAdjective}.
@@ -128,18 +166,6 @@
 
             document.getElementById("message").innerHTML = message;
             incrementGenerationCount();
-        }
-
-        // Total generation count logic
-        function updateGenerationCount() {
-            const totalGenerations = localStorage.getItem("generationCount") || 0;
-            document.getElementById("generation-count").textContent = `Total Generations: ${totalGenerations}`;
-        }
-
-        function incrementGenerationCount() {
-            let count = parseInt(localStorage.getItem("generationCount") || 0) + 1;
-            localStorage.setItem("generationCount", count);
-            updateGenerationCount();
         }
 
         document.addEventListener("DOMContentLoaded", updateGenerationCount);
