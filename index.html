@@ -34,7 +34,7 @@
         button:hover {
             background-color: #0056b3;
         }
-        #visitor-count {
+        #generation-count {
             margin-top: 20px;
             font-weight: bold;
             color: #007bff;
@@ -127,33 +127,30 @@
             `;
 
             document.getElementById("message").innerHTML = message;
+            incrementGenerationCount();
         }
 
-        // Visitor count logic
-        function updateVisitorCount() {
-            if (!localStorage.getItem("visited")) {
-                localStorage.setItem("visited", "true");
-                incrementGlobalVisitorCount();
-            }
-
-            const globalCount = localStorage.getItem("globalCount") || 0;
-            document.getElementById("visitor-count").textContent = `Total Visitors: ${globalCount}`;
+        // Total generation count logic
+        function updateGenerationCount() {
+            const totalGenerations = localStorage.getItem("generationCount") || 0;
+            document.getElementById("generation-count").textContent = `Total Generations: ${totalGenerations}`;
         }
 
-        function incrementGlobalVisitorCount() {
-            const globalCount = parseInt(localStorage.getItem("globalCount") || 0) + 1;
-            localStorage.setItem("globalCount", globalCount);
+        function incrementGenerationCount() {
+            let count = parseInt(localStorage.getItem("generationCount") || 0) + 1;
+            localStorage.setItem("generationCount", count);
+            updateGenerationCount();
         }
 
-        document.addEventListener("DOMContentLoaded", updateVisitorCount);
+        document.addEventListener("DOMContentLoaded", updateGenerationCount);
     </script>
 </head>
 <body>
     <div class="container">
-        <h1>Random Message Generator (v1.2)</h1>
+        <h1>Random Message Generator (v1.3.1)</h1>
         <p id="message">Click the button below to generate a random message!</p>
         <button onclick="generateMessage()">Generate Message</button>
-        <div id="visitor-count"></div>
+        <div id="generation-count"></div>
     </div>
 </body>
 </html>
